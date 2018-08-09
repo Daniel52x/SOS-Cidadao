@@ -11,12 +11,12 @@ class GerenNotiComum extends GenericaM{
 
     private $resultados = array();
 
-    public function __construct($idUser){ // ASsim q for instanciado ele vai pegar todos os ids de publicacoes
+    public function __construct($idUser,$indVisu = null){ // ASsim q for instanciado ele vai pegar todos os ids de publicacoes
         $publicacoes = new SelectRegis(); // Que o usuario envio, e dos comentarios tambem
         $publicacoes->setCodUsu($idUser);        
         $this->setCodPubli($publicacoes->selectPubli());
-        $this->setCodComen($publicacoes->selectComen()); 
-        $this->setCodSalvos($publicacoes->selectSalvos());        
+        //$this->setCodComen($publicacoes->selectComen()); 
+        //$this->setCodSalvos($publicacoes->selectSalvos());        
     }
 
     //Feito
@@ -38,7 +38,7 @@ class GerenNotiComum extends GenericaM{
         $publicacoes->setCodPubli($this->getCodPubli());
         $lista_de_curtidores = $publicacoes->select();     
         if(count($lista_de_curtidores) > 0){
-            $resultado = $this->Mensagem($lista_de_curtidores, "curtiu", "curtiram" ,"a publicação", "curtida"); 
+            $resultado = $this->Mensagem($lista_de_curtidores, "curtiu", "curtiram" ,"a publicação", "curtida","dataHora_publi_curti"); 
             $this->resultados = array_merge_recursive($this->resultados, $resultado);
             return $resultado;
         }           
@@ -97,7 +97,7 @@ class GerenNotiComum extends GenericaM{
         }
     }
     //Feito
-    public function Mensagem($listaCurtidores = array(), $singular, $plural, $complemento, $tipoPubli){        
+    public function Mensagem($listaCurtidores = array(), $singular, $plural, $complemento, $tipoPubli, $indiceHora){        
         if(count($listaCurtidores) > 0){
             $contador = 0;
             $singular = trim($singular);
@@ -110,6 +110,7 @@ class GerenNotiComum extends GenericaM{
                     $resultado[$contador]['notificacao'] = $listaCurtidores[$contador][0]['nome_usu'] . " $singular $complemento  <strong>" .  $listaCurtidores[$contador][0]['titulo_publi'] . "</strong>";
                     $resultado[$contador]['id_publi'] = $listaCurtidores[$contador][0]['cod_publi'];
                     $resultado[$contador]['tipo'] = $tipoPubli;
+                    $resultado[$contador]['dataHora'] = $listaCurtidores[$contador][0]['dataHora_publi_curti'];
                     
                 }else if($quantidadeCurtidoresComen == 2){                        
                     $contador2 = 0;
@@ -124,6 +125,7 @@ class GerenNotiComum extends GenericaM{
                     $resultado[$contador]['notificacao'] = $texto . " $plural $complemento  <strong>" .  $listaCurtidores[$contador][0]['titulo_publi'] . "</strong>";
                     $resultado[$contador]['id_publi'] = $listaCurtidores[$contador][0]['cod_publi'];
                     $resultado[$contador]['tipo'] = $tipoPubli;
+                    $resultado[$contador]['dataHora'] = $listaCurtidores[$contador][0]['dataHora_publi_curti'];
                     
                 }else{
                     $contador2 = 0;
@@ -143,6 +145,7 @@ class GerenNotiComum extends GenericaM{
                     }                    
                     $resultado[$contador]['id_publi'] = $listaCurtidores[$contador][0]['cod_publi'];
                     $resultado[$contador]['tipo'] = $tipoPubli;
+                    $resultado[$contador]['dataHora'] = $listaCurtidores[$contador][0]['dataHora_publi_curti'];
 
                 }
                 $contador++;
@@ -153,11 +156,11 @@ class GerenNotiComum extends GenericaM{
 
     public function notificacoes(){
             
-        $curtidasComen = $this->curtidasComen();
+        //$curtidasComen = $this->curtidasComen();
         $curtidasPubli = $this->curtidasPubli();
-        $respostaPubliSalva = $this->respostaPubliSalva();
-        $respostaPrefei = $this->respostaPrefei();
-        $comentarioComum = $this->comentarioComum();        
+        //$respostaPubliSalva = $this->respostaPubliSalva();
+        //$respostaPrefei = $this->respostaPrefei();
+        //$comentarioComum = $this->comentarioComum();        
         
         return $this->resultados ;
     }

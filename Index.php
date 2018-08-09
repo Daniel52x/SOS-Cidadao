@@ -9,11 +9,15 @@ use Notificacoes\GerenNotiComum;
 session_start();
 //$_SESSION['id'] = 1;
 
+if(isset($_POST['indVisu'])){
+    $ind = $_POST['indVisu'];
+}
+
 $idUser = (int)$_SESSION['id_user'];
 $jaca = new GerenNotiComum($idUser);
 
 $resultado = $jaca->notificacoes();
-
+var_dump($resultado);
 echo json_encode($resultado);
 
 /*s

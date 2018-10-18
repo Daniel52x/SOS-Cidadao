@@ -1,20 +1,17 @@
 <?php
 session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
     
     use Classes\Denuncias;
     use Core\Usuario;
     
     try{
         if(isset($_GET)){
-        Usuario::verificarLogin(9);  // Apenas prefeitura funcionario
+        //Usuario::verificarLogin(9);  // Apenas prefeitura funcionario
+
+        $tipoUsuPermi = array('Moderador','Adm');
+        Usuario::verificarLogin(1,$tipoUsuPermi);  // Tem q estar logado 
         $denun = new Denuncias();    
         $tipo = array();
         $parametro = "";
@@ -39,7 +36,7 @@ session_start();
         if(empty($res)){
             echo 'Não há nenhuma denuncia para verificar<br>';
         }
-
+        echo '<a href="starter.php">Home</a>';
         
 ?>
 <html>

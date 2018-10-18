@@ -1,19 +1,16 @@
 <?php
 session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
     
     use Core\Usuario;
     use Core\Publicacao;
     
     try{
-        Usuario::verificarLogin(4);  // Apenas prefeitura funcionario
+
+        $tipoUsuPermi = array('Funcionario','Prefeitura');
+        Usuario::verificarLogin(1,$tipoUsuPermi);  // Tem q estar logado
+                
         $publi = new Publicacao();       
         $publi->setCodUsu($_SESSION['id_user']);         
         isset($_GET['pagina']) ?: $_GET['pagina'] = null;   
@@ -26,6 +23,7 @@ session_start();
         if(empty($resposta)){
             echo 'Não há nenhuma publicacao para responder<br>';
         }
+        
 ?>
 
 <html>
@@ -208,7 +206,7 @@ session_start();
     $erro = $exc->getCode();   
     $mensagem = $exc->getMessage();  
     switch($erro){
-        case 2://Nao esta logado    
+        case 2://Nao esta logado           
             echo "<script> alert('$mensagem');javascript:window.location='./loginTemplate.php';</script>";
             break;
         case 6://Não é usuario prefeitura ou func  

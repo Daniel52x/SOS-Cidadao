@@ -1,20 +1,16 @@
 <?php
 session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
     
     use Core\Usuario;
     try{
-       Usuario::verificarLogin(2);  // Tem q estar logado, todos tem permissao
+        $tipoUsuPermi = array('Comum','Funcionario','Prefeitura','Moderador','Adm');
+        Usuario::verificarLogin(1,$tipoUsuPermi);  // Tem q estar logado
        $usuario = new Usuario();
        $usuario->setCodUsu($_SESSION['id_user']);
-       $dados = $usuario->getDadosUser();       
+       $dados = $usuario->getDadosUser();  
+       echo '<a href="starter.php">Home</a>';     
 ?>
 <form action="../updateNomeEmail.php" method="post">
     <label>Nome:<input type="text" name="nome" value="<?php echo $dados[0]['nome_usu'] ?>"></label>

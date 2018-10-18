@@ -6,8 +6,8 @@ class DbConnection extends CfAcademicoLogin{ //Extender de uma classe é com ext
 
     private $conn;
     private $user = 'root';
-    private $pass = '';
-    private $host = 'localhost';
+    private $pass = '12345678';
+    private $host = 'LAB2M19';
     private $port = '3306';
     private $database = 'reclama1';
     private $lastId;
@@ -18,6 +18,7 @@ class DbConnection extends CfAcademicoLogin{ //Extender de uma classe é com ext
             $this->conn = new \PDO("mysql:host=$this->host;port=$this->port;dbname=$this->database", $this->user, $this->pass); // Barra invertida significa q a classe nao é sua
             if(isset($this->conn)){
                 $this->conn->exec("set names utf8"); // Metodo utf-8
+                //$this->conn->exec("SET @@global.time_zone = '+3:00'");
                 return $this->conn;
             }    
         
@@ -36,9 +37,10 @@ class DbConnection extends CfAcademicoLogin{ //Extender de uma classe é com ext
 
         if($stm){            
             $this->lastId = $this->conn->lastInsertId();
-            $this->conn->commit(); // retificadpo "confirmado" a operacao            
+            $this->conn->commit(); // retificadpo "confirmado" a operacao                        
         }else{            
             $this->conn->rollBack(); // desfazendo as operações anteriores para manter a integridade do banco
+            
         }
         
         //$stm->lastInsertId();

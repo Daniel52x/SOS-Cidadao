@@ -9,26 +9,42 @@ class CategoriaA extends CategoriaM{
         return $this->runSelect($this->sqlSelect);
     }
 
-    public function gerarOptions(){ //Gerar Options do select para a pagina publicaçoes
+    public function gerarOptions($selecionadoPadrao = null){ //Gerar Options do select para a pagina publicaçoes
         $res = $this->select();
-        $option = '';
+        $input = '';
+        $label = '';
         $options = array();
+        $contador = 1;
         foreach($res as $chaves=>$valores){
-            $option = '<option ';
-            foreach($valores as $chave => $valor){
+            $input = '
+            <div>
+                <input type="radio" name="categoria" ';
+            $id = 'categoria-'.$contador;
+            $input .= 'id="'.$id.'"';
+            $label = '<label for='.$id.'> ';
+            foreach($valores as $chave => $valor){                
                 if($chave == 'cod_cate'){
-                $option .= 'value="'.$valor .'"';
+                    $input .= 'value="'.$valor .'"
+                    
+                    ';
                 }
                 if($chave == 'descri_cate'){
-                    $option .= 'class="'.$this->tirarAcentos($valor).'"';
-                    $option .= ' >'.$valor;
-                    $option .= ' </option>';
-                    
-                }
-                    
-            }
-            $options[] = $option;            
-        }
+                    // quando for colocar os icones oficiais usar este de baixo
+                    //$label .= '<i class="'.$this->tirarAcentos($valor).'" ></i><span>'.$valor.'</span></label></div> '; 
+                    $label .= '<i class="icone-mail"></i><span>'.$valor.'</span></label></div> '; 
+                    if($selecionadoPadrao == $valor){                        
+                        $input .= ' checked >';
+                    }else{
+                        $input .='>                        
+                        ';
+                        
+                    }                           
+                }   
+            }             
+            $options[] = $input; 
+            $options[] = $label;
+            $contador++;    
+        }        
         return $options;
 
     }

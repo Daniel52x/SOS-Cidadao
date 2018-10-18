@@ -1,16 +1,11 @@
 <?php
     session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates"); // tava dando pau ai tive que tirar \Templates
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');    
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
     use Core\Usuario;
     try{
-      Usuario::verificarLogin(2); // Tem q estar logado
+      $tipoUsuPermi = array('Comum','Funcionario','Prefeitura','Moderador','Adm');
+      Usuario::verificarLogin(1,$tipoUsuPermi); // Nao pode estar logado // Tem q estar logado
 
       $dados = new Usuario();
       $dados->setCodUsu($_SESSION['id_user']);
@@ -46,7 +41,15 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="dist/css/skins/skin-blue.min.css">
   <script src="../jquery-3.3.1.min.js"></script> 
   <script type="text/javascript" src="../teste.js"></script>
+  <style type="text/css">
+    .Visualizado{
+      background-color:red;
+    }
+    .NVisualizado{
+      background-color:green;
+    }
 
+  </style>
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
   <!--[if lt IE 9]>
@@ -321,11 +324,13 @@ desired effect
           <br>
         <a href="UpdateSenhaTemplate.php">Update Senha</a>
           <br>
+        <a href="UpdatePerfilTemplate.php">Editar Perfil</a>
+          <br>
         <?php
           if($resultado[0]['descri_tipo_usu'] == 'Comum'){
-            echo '<a href="EnviarPublicacaoTemplate.php">Enviar Publicacao</a>
+            echo '<a href="../view/Formulario-reclamacao.php">Enviar Publicacao(Certo)</a>
             <br>';
-            echo '<a href="CriarDebateTemplate.php">Criar Debate</a>
+            echo '<a href="../view/Formulario-debate.php">Criar Debate(Certo)</a>
             <br>';
           }
 
@@ -333,19 +338,17 @@ desired effect
             echo '<a href="VerPubliNRespondidasTemplate.php">Listar reclamaçoes nao respondidas</a>
             <br>';
             if($resultado[0]['descri_tipo_usu'] == 'Prefeitura'){
-              echo '<a href="">Cadastrar Funcionario(Não feito)</a>
-                            <br>';
-              echo '<a href="">Remover Funcionario(Não feito)</a>
-                            <br>';
+              echo '<a href="../view/prefeitura-admin.php">Cadastrar Funcionario</a>
+                            <br>';              
             }
             
           }
 
           if($resultado[0]['descri_tipo_usu'] == 'Adm' or $resultado[0]['descri_tipo_usu'] == 'Moderador'){
-            echo '<a href="VerDenunciaNVerificadasTemplate.php?tipo1=Debate&tipo2=Comen&tipo3=Publi">Visualizar denuncias</a>
+            echo '<a href="../view/admin-denuncia.php">Visualizar denuncias(certo)</a>
             <br>';
             if($resultado[0]['descri_tipo_usu'] == 'Adm'){
-              echo '<a href="VerUsuariosTemplate.php?tipo1=Adm&tipo2=Moderador&tipo3=Prefeitura&tipo4=Funcionario">Cadastrar Moderador e Prefeitura(Não Feito)</a>
+              echo '<a href="../view/admin-moderador.php">Cadastrar Moderador e Prefeitura(certo)</a>
                             <br>';
              
             }
@@ -353,9 +356,9 @@ desired effect
           }
         ?>
         
-        <a href="VisualizarPublicacoesTemplate.php">Ver publicações</a>
+        <a href="../view/todasreclamacoes.php">Ver publicações(Certo)</a>
           <br>
-        <a href="VisualizarDebatesTemplate.php">Ver Debates</a>
+        <a href="../view/todosdebates.php">Ver Debates(Certo)</a>
       <!-- Your Page Content Here -->
 
     </section>

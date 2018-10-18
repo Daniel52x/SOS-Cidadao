@@ -1,18 +1,13 @@
 <?php
 session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
-    
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
+        
     use Core\Usuario;
     try{
-        Usuario::verificarLogin(2);  // Vai estourar um erro se ele nao estiver logado
-        Usuario::verificarLogin(3);  // apenas user comum
+        $tipoUsuPermi = array('Comum');        
+        Usuario::verificarLogin(1,$tipoUsuPermi);  // 1 = tem q estar logado
+        echo '<a href="starter.php">Home</a>';
 ?>
 
 <html>
@@ -42,7 +37,7 @@ session_start();
             case 2://Nao esta logado    
                 echo "<script> alert('$mensagem');javascript:window.location='./loginTemplate.php';</script>";
                 break;
-            case 6://Não é usuario comum  
+            case 6://Não é usuario comum                 
                 echo "<script> alert('$mensagem');javascript:window.location='./starter.php';</script>";
                 break;            
         }        

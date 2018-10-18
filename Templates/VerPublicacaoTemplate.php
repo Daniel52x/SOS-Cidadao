@@ -1,26 +1,27 @@
 <?php
 session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
     
     use Core\Usuario;
     use Core\Publicacao;
     use Core\Comentario;
+    use Core\PublicacaoSalva;
     use Classes\ValidarCampos;
     try{        
         $publi = new Publicacao();
         $comentario = new Comentario();
-
+       
         if(isset($_SESSION['id_user']) AND !empty($_SESSION['id_user'])){
             $publi->setCodUsu($_SESSION['id_user']);
             $comentario->setCodUsu($_SESSION['id_user']);
-            $tipoUsu = $_SESSION['tipo_usu'];
+            
+            $publiSalva = new PublicacaoSalva();
+            $publiSalva->setCodUsu($_SESSION['id_user']);
+            $publiSalva->setCodPubli($_GET['ID']);  
+            $indSalva = $publiSalva->indSalva();
+
+            $tipoUsu = $_SESSION['tipo_usu'];            
         }
 
         $nomesCampos = array('ID');// Nomes dos campos que receberei da URL    
@@ -28,7 +29,9 @@ session_start();
         $validar->verificarTipoInt($nomesCampos, $_GET); // Verificar se o parametro da url é um numero
         
         $publi->setCodPubli($_GET['ID']);
-        $comentario->setCodPubli($_GET['ID']);        
+        $comentario->setCodPubli($_GET['ID']);   
+          
+        
         isset($_GET['pagina']) ?: $_GET['pagina'] = null;
                   
         $comentarioComum = $comentario->SelecionarComentariosUserComum($_GET['pagina']);
@@ -197,18 +200,31 @@ session_start();
                 
                 if(isset($_SESSION['id_user']) AND $_SESSION['id_user'] == $resposta[0]['cod_usu']){
                     echo '<a href="../ApagarPublicacao.php?ID='.$_GET['ID'].'">Apagar Publicacao</a>';
+                        echo '<br><br>';
+                    echo '<a href="UpdatePublicacaoTemplate.php?ID='.$_GET['ID'].'">Editar Publicacao</a>';
                 }else if(isset($tipoUsu) AND ($tipoUsu == 'Adm' or $tipoUsu == 'Moderador')){
                     echo '<a href="../ApagarPublicacao.php?ID='.$_GET['ID'].'">Apagar Publicacao</a>';
                         echo '<br>';
                     echo '<a href="../ApagarUsuario.php?ID='.$resposta[0]['cod_usu'].'">Apagar Usuario</a>';
+                        echo '<br><br>';
+                    echo '<a href="UpdatePublicacaoTemplate.php?ID='.$_GET['ID'].'">Editar Publicacao</a>';
                 }
+                    echo '<br>';
+                    if(isset($indSalva) AND !$indSalva){
+                        echo '<a href="../SalvarPublicacao.php?ID='.$_GET['ID'].'">Salvar</a>';
+                    }else if(isset($indSalva) AND $indSalva){
+                        echo '<a href="../SalvarPublicacao.php?ID='.$_GET['ID'].'">Nao salvar1</a>';
+                    }else{
+                        echo '<a href="../SalvarPublicacao.php?ID='.$_GET['ID'].'">Salvar1</a>';
+                    }
+
                 ?>               
                 
             </div>   
         </div>          
         <?php 
         
-            if(!empty($comentarioPrefei)){
+            if(!empty($comentarioPrefei)){                
         ?>
                 <div class="comenPrefei">
                     <h1>Resposta Prefeitura:</h1>
@@ -238,6 +254,15 @@ session_start();
                             echo '<a href="DenunciarComentarioTemplate.php?ID='.$comentarioPrefei[0]['cod_comen'].'&IDPubli='.$_GET['ID'].'&pagina='. $pagina.'">Denunciar</a>';
                         }
 
+                        if(isset($tipoUsu)){
+                            if($tipoUsu == 'Prefeitura'){ // SE for tipo prefeitura pode editar qualquer comenentario
+                                echo '<br><br>';
+                                echo '<a href="UpdateComentarioTemplate.php?ID='.$comentarioPrefei[0]['cod_comen'].'&IDPubli='.$_GET['ID'].'">Editar</a>';
+                            }else if($tipoUsu == 'Funcionario' AND $_SESSION['id_user'] == $comentarioPrefei[0]['cod_usu']){ // se for tipo funcionario so pode editar as suas respostas
+                                echo '<a href="UpdateComentarioTemplate.php?ID='.$comentarioPrefei[0]['cod_comen'].'&IDPubli='.$_GET['ID'].'">Editar</a>';
+                            }
+                        }
+
 
                     ?>
                     
@@ -258,8 +283,10 @@ session_start();
                             </form>        
                        </div>   
                     ';
-                }               
-            }else if(isset($tipoUsu) AND ($tipoUsu == 'Comum' or $tipoUsu == 'Prefeitura' or $tipoUsu == 'Funcionario')){            
+                }              
+
+
+            }else if(isset($tipoUsu) AND ($tipoUsu == 'Comum')){            
         ?>
             
         <div>
@@ -316,10 +343,12 @@ session_start();
 
                         if(isset($_SESSION['id_user']) AND $_SESSION['id_user'] == $comentarioComum[$contador]['cod_usu']){
                             echo '<a href="../ApagarComentario.php?ID='.$comentarioComum[$contador]['cod_comen'].'">Apagar Comentario</a>';
+                            echo '<br><br>';
+                            echo '<a href="UpdateComentarioTemplate.php?ID='.$comentarioComum[$contador]['cod_comen'].'&IDPubli='.$_GET['ID'].'">Editar</a>';
                         }else if(isset($tipoUsu) AND ($tipoUsu == 'Adm' or $tipoUsu == 'Moderador')){
                             echo '<a href="../ApagarComentario.php?ID='.$comentarioComum[$contador]['cod_comen'].'">Apagar Comentario</a>';
                                 echo '<br>';
-                            echo '<a href="../ApagarUsuario.php?ID='.$comentarioComum[$contador]['cod_comen'].'">Apagar Usuario</a>';
+                            echo '<a href="../ApagarUsuario.php?ID='.$comentarioComum[$contador]['cod_usu'].'">Apagar Usuario</a>';                            
                         }
                     ?>
                 </div>

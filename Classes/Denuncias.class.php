@@ -22,7 +22,8 @@ class Denuncias extends DenunciasM{
                                 nome_usu AS nome_denunciado
                                 FROM publi_denun INNER JOIN publicacao ON (publi_denun.cod_publi = publicacao.cod_publi)
                                 INNER JOIN usuario ON (publicacao.cod_usu = usuario.cod_usu)
-                                WHERE status_denun_publi = 'A' AND status_publi = 'A' ";
+                                WHERE status_denun_publi = 'A' AND status_publi = 'A' 
+                                AND status_usu = 'A'";
 
     private $sqlDenunComen = " %s SELECT 'Comentário' AS Tipo, 
                                 cod_denun_comen AS cod_denun, motivo_denun_comen AS motivo , 
@@ -31,7 +32,9 @@ class Denuncias extends DenunciasM{
                                 nome_usu AS nome_denunciado
                                 FROM comen_denun INNER JOIN comentario ON (comen_denun.cod_comen = comentario.cod_comen)
                                 INNER JOIN usuario ON (comentario.cod_usu = usuario.cod_usu)
-                                WHERE status_denun_comen = 'A' AND status_comen = 'A' AND status_usu = 'A' AND status_usu = 'A' ";
+                                INNER JOIN publicacao ON (comentario.cod_publi = publicacao.cod_publi)
+                                WHERE status_denun_comen = 'A' AND status_comen = 'A' AND status_usu = 'A' AND status_usu = 'A' 
+                                AND status_publi = 'A'";
     
     private $countDenunDebate = " %s SELECT 'Debate' AS Tipo, debate_denun.cod_deba FROM debate_denun 
                                         INNER JOIN debate ON (debate_denun.cod_deba = debate.cod_deba)
@@ -44,7 +47,15 @@ class Denuncias extends DenunciasM{
     private $countDenunComen = " %s SELECT 'Comentário' AS Tipo, comen_denun.cod_comen FROM comen_denun
                                         INNER JOIN comentario ON (comen_denun.cod_comen = comentario.cod_comen)
                                         INNER JOIN usuario ON (comentario.cod_usu = usuario.cod_usu)
-                                        WHERE status_denun_comen = 'A' AND status_comen = 'A' ";
+                                        INNER JOIN publicacao ON (comentario.cod_publi = publicacao.cod_publi)
+                                        WHERE status_denun_comen = 'A' AND status_comen = 'A' 
+                                        AND status_publi = 'A'";
+
+    private $updateDenunDebate = "UPDATE debate_denun SET status_denun_deba = 'I' WHERE cod_denun_deba = '%s'";
+
+    private $updateDenunPublicacao = "UPDATE publi_denun SET status_denun_publi = 'I' WHERE cod_denun_publi = '%s'";
+
+    private $updateDenunComentario = "UPDATE comen_denun SET status_denun_comen = 'I' WHERE cod_denun_comen = '%s'";
 
     public function select($tabelas = array(), $pagina = null){
         $sqlLimite = $this->controlarPaginacao($tabelas,$pagina);
@@ -64,19 +75,24 @@ class Denuncias extends DenunciasM{
         $sql .= ") as Total";
         
         $res = $this->runSelect($sql);
-        
-        return $res[0]['COUNT(*)'];
+        if(!empty($res)){
+            return $res[0]['COUNT(*)'];
+        }
+        return 0;
     }
 
     public function gerarSql($comecoQuery,$tabelas = array(), $priCoringa = " "){
         $sqlNPrepa = "";
         $contador = 0;
+        $vlrPermi = array('Comen','Debate','Publi');
         foreach ($tabelas as $valor){
-            if($contador == 0){ // Colocar alguma coisa no primeiro %s
-                $sqlNPrepa .=  sprintf($this->{$comecoQuery.$valor},$priCoringa); // $this->{$comecoQuery.$valor} gerar o nome do atributo dinamico
-            }else{
-                $sqlNPrepa .= sprintf($this->{$comecoQuery.$valor}," UNION ");
-            }              
+            if(in_array($valor,$vlrPermi)){
+                if($contador == 0){ // Colocar alguma coisa no primeiro %s
+                    $sqlNPrepa .=  sprintf($this->{$comecoQuery.$valor},$priCoringa); // $this->{$comecoQuery.$valor} gerar o nome do atributo dinamico
+                }else{
+                    $sqlNPrepa .= sprintf($this->{$comecoQuery.$valor}," UNION ");
+                }
+            }                          
             $contador++;
         }
         return $sqlNPrepa;
@@ -89,7 +105,8 @@ class Denuncias extends DenunciasM{
             $dados[$contador]['dataHora'] = $this->tratarData($dados[$contador]['dataHora']);//Calcular o tempo           
             $dados[$contador]['LinkVisita'] = $this->LinkParaVisita($dados[$contador]['Tipo'],$dados[$contador]['cod_publi_denun']);//Calcular o tempo    
             $dados[$contador]['LinkApagarPubli'] = $this->LinkParaDeletar($dados[$contador]['Tipo'],$dados[$contador]['cod_publi_denun']);//Calcular o tempo      
-            $dados[$contador]['LinkApagarUsu'] = $this->LinkParaDeletar('Usuario',$dados[$contador]['cod_usu_denunciado']);//Calcular o tempo                                  
+            $dados[$contador]['LinkApagarUsu'] = $this->LinkParaDeletar('Usuario',$dados[$contador]['cod_usu_denunciado']);//Calcular o tempo 
+            $dados[$contador]['tipoSemAcento'] = strtolower(preg_replace( '/[`^~\'"]/', null, iconv( 'UTF-8', 'ASCII//TRANSLIT', $dados[$contador]['Tipo'] )));                                
             $contador++;
         }          
         return $dados;
@@ -105,10 +122,11 @@ class Denuncias extends DenunciasM{
         $tirarEspacos = str_replace(" ", "", $semAcento);
         if($tirarEspacos == 'comentario'){ 
             $codPubli = $this->acharPubliDoComen($cod);
-            $link = 'VerPublicacaoTemplate.php?ID='.$codPubli.'%IdComen='.$cod;
-        }else{
-            $semAcentos = ucfirst($tirarEspacos);
-            $link = 'Ver'.$semAcentos.'Template.php?ID='.$cod;
+            $link = 'reclamacao.php?ID='.$codPubli.'&IdComen='.$cod;
+        }else if($tirarEspacos == 'debate'){            
+            $link = 'Pagina-debate.php?ID='.$cod;
+        }else if($tirarEspacos == 'publicacao'){
+            $link = 'reclamacao.php?ID='.$cod;
         }        
         return $link;
     }
@@ -128,7 +146,7 @@ class Denuncias extends DenunciasM{
 
     public function controlarPaginacao($tabelas,$pagina = null){ // Fazer o controle da paginacao       
         $paginacao = new Paginacao(); //Instancinado a classe
-        $paginacao->setQtdPubliPaginas(6); //Quantos comentarios quero por pagina       
+        $paginacao->setQtdPubliPaginas(8); //Quantos comentarios quero por pagina       
         $quantidadeTotalPubli = $this->quantidadeTotalPubli($tabelas); //total de comentarios
         $sqlPaginacao = $paginacao->prapararSql('dataHora','desc', $pagina, $quantidadeTotalPubli);//Prepare o sql
         $this->setQuantidadePaginas($paginacao->getQuantidadePaginas());//Seta a quantidade de paginas no total
@@ -136,4 +154,22 @@ class Denuncias extends DenunciasM{
         return $sqlPaginacao;
         
     }
+
+    public function deletarDenun($tipo){
+        $tipoPermi = array('comentario','debate','publicacao');
+        if(in_array($tipo,$tipoPermi)){
+            $sql = sprintf(
+                $this->{'updateDenun'.ucfirst($tipo)},
+                $this->getCodDenun()
+            );
+            $res = $this->runQuery($sql);
+            if($res->rowCount() <= 0){
+                throw new \Exception("Erro ao apagar denúncia",20);
+            }
+            return;
+        }
+        throw new \Exception("Tipo nao permitido",20);
+    }
+    
+    
 }

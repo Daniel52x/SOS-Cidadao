@@ -1,23 +1,18 @@
 <?php
 session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
     
     use Core\Usuario;
     use Classes\ValidarCampos;
-    try{
-        Usuario::verificarLogin(2);//Tem q estar logado
-        Usuario::verificarLogin(8);//Apenas user comum, prefeitura e func 
-
+    try{      
+        $tipoUsuPermi = array('Comum','Prefeitura','Funcionario');
+        Usuario::verificarLogin(1,$tipoUsuPermi);
+        
         $nomesCampos = array('ID');// Nomes dos campos que receberei da URL    
         $validar = new ValidarCampos($nomesCampos, $_GET);
-        $validar->verificarTipoInt($nomesCampos, $_GET); // Verificar se o parametro da url é um numero        
+        $validar->verificarTipoInt($nomesCampos, $_GET); // Verificar se o parametro da url é um numero   
+        echo '<a href="starter.php">Home</a>';     
 ?>
 
 <html>

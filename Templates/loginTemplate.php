@@ -1,17 +1,11 @@
 <?php
-session_start();
-    $NomeArquivo = dirname(__FILE__);
-    $posicao = strripos($NomeArquivo, "\Templates");
-    if($posicao){
-        $NomeArquivo = substr($NomeArquivo, 0, $posicao);
-    }
-    define ('WWW_ROOT', $NomeArquivo); 
-    define ('DS', DIRECTORY_SEPARATOR);    
-    require_once('../autoload.php');
-    
+session_start();    
+    require_once('../Config/Config.php');
+    require_once(SITE_ROOT.DS.'autoload.php');
+       
     use Core\Usuario;
-    try{
-        Usuario::verificarLogin(1);  // Vai estourar um erro se ele ja estiver logado
+    try{        
+        Usuario::verificarLogin(0); // Nao pode estar logado
 ?>
 
 <html>
@@ -34,7 +28,8 @@ session_start();
         $erro = $exc->getCode();   
         $mensagem = $exc->getMessage();
         switch($erro){
-            case 2://Ja esta logado   
+            case 2://Ja esta logado  
+            case 6://Ja esta logado 
                 echo "<script> alert('$mensagem');javascript:window.location='./starter.php';</script>";
                 break;
            

@@ -16,15 +16,15 @@ class GenericaM extends DbConnection{
     }
 
 
-    public function getCodPubli(){
+    public function getCodPubli():array{
         return $this->codPubli;
     }  
 
-    public function getCodComen(){
+    public function getCodComen():array{
         return $this->codComen;
     } 
 
-    public function getCodSalvos(){
+    public function getCodSalvos():array{
         return $this->codSalvo;
     } 
 
